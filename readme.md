@@ -10,9 +10,9 @@
 ### Usage
 
 - Add your OpenAI API Key to .env.local and rename it to .env
-- Run the `make start-server` OR `go run main.go` command
+- Run the `make start-server` OR `go run cmd/app/main.go` command
 
 #### Recommended Front-end implementation
 
 - I'm currently using [SSE.js](https://github.com/mpetazzoni/sse.js) for the Front-end SSE implementation. Hence, my `/openai` route accepts a post request with a JSON payload but returns
-  an SSE streaming response.
+  an SSE streaming response. [Example Implementation](https://github.com/IcelandicIcecream/svelte-openai-go)
