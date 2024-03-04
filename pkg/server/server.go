@@ -60,7 +60,7 @@ func (s *Server) Start() {
 	<-sigChan
 	fmt.Println("Shutting down server...")
 
-	// Create a deadline to wait for.
+	// Create a deadline to wait for graceful server shutdown -- if not force close
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 	// Doesn't block if no connections, but will otherwise wait
