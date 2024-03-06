@@ -11,6 +11,6 @@ services:
     ports:
       - 5432:5432
     volumes:
-      - ./build-db.sql:/docker-entrypoint-initdb.d/init.sql:ro
+      - ./pkg/db/build-db.sql:/docker-entrypoint-initdb.d/init.sql:ro
 volumes:
   openai-go-db:

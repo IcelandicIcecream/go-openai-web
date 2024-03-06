@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"fmt"
 	"icelandicicecream/openai-go/model"
 	"icelandicicecream/openai-go/pkg/utils"
 	"net/http"
@@ -61,7 +62,7 @@ func (s *Server) healthCheckHandler(ctx context.Context, input *struct{}) (*mode
 
 // create a new session
 func (s *Server) newSession(ctx context.Context, req *model.NewSessionRequest) (*model.Response, error) {
-	userId, err := utils.PgUUID(req.Body.SessionId)
+	userId, err := utils.PgUUID(req.Body.UserId)
 	if err != nil {
 		return nil, err
 	}
@@ -89,6 +90,7 @@ func (s *Server) streamSession(ctx context.Context, req *model.StreamSessionRequ
 		return
 	}
 	for message := range sessionChan {
+		fmt.Println(message)
 		send.Data(model.StreamResponse{Message: message})
 	}
 }
@@ -106,49 +108,3 @@ func (s *Server) chatCompletion(ctx context.Context, req *model.OpenAIRequest) (
 
 	return nil, nil
 }
-
-// Check if session exists
-
-// for x := 0; x < 10; x++ {
-// 	send.Data(model.StreamResponse{Message: fmt.Sprintf("%v", x)})
-// 	time.Sleep(time.Second * 1)
-// }
-
-// func (s *Server) sendMessageToOpenAIHandler(w http.ResponseWriter, r *http.Request) {
-// 	var req model.OpenAIRequest
-//
-// 	ctx := r.Context()
-//
-// 	err := json.NewDecoder(r.Body).Decode(&req)
-// 	if err != nil {
-// 		http.Error(w, err.Error(), http.StatusBadRequest)
-// 		return
-// 	}
-//
-// 	w.Header().Set("Content-Type", "text/event-stream")
-// 	w.Header().Set("Cache-Control", "no-cache")
-// 	w.Header().Set("Connection", "keep-alive")
-//
-// 	flusher, ok := w.(http.Flusher)
-// 	if !ok {
-// 		http.Error(w, "Streaming unsupported!", http.StatusInternalServerError)
-// 		return
-// 	}
-//
-// 	// Create a response channel
-// 	responseChan := make(chan string)
-// 	go func() {
-// 		defer close(responseChan)
-// 		err := s.OpenAI.GetCompletion(ctx, req, responseChan)
-// 		if err != nil {
-// 			responseChan <- err.Error()
-// 		}
-// 	}()
-//
-// 	for message := range responseChan {
-// 		fmt.Fprintf(w, "data: %s\n\n", message)
-// 		flusher.Flush()
-// 	}
-//
-// 	w.WriteHeader(http.StatusOK)
-// }

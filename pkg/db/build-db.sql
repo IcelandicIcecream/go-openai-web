@@ -10,6 +10,7 @@ CREATE TABLE IF NOT EXISTS messages (
     id SERIAL PRIMARY KEY,
     session_id UUID NOT NULL,
     content TEXT NOT NULL,
+    role TEXT NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT NOW(),
     FOREIGN KEY (session_id) REFERENCES sessions(id)
 )

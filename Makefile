@@ -4,7 +4,7 @@ start-server:
 
 .PHONY: start-db
 start-db:
-	docker-compose -f pkg/db/db.docker-compose.yml up
+	docker-compose -f db.docker-compose.yml up
 
 .PHONE: reset-db
 reset-db:

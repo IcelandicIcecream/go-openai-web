@@ -29,6 +29,7 @@ type Server struct {
 func (s *Server) Start() {
 	mux := http.NewServeMux()
 	api := humago.New(mux, huma.DefaultConfig("OpenAI Go", "1.0.0"))
+
 	// Default middleware stack for most routes
 	defaultMiddlewares := []func(http.Handler) http.Handler{
 		s.logRequests,
@@ -75,13 +76,6 @@ func (s *Server) Start() {
 // 	})
 // }
 
-// func (s *Server) corsMiddleware(ctx huma.Context, next func(huma.Context)) {
-// 	ctx.SetHeader("Access-Control-Allow-Origin", "*")
-// 	ctx.SetHeader("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
-// 	ctx.SetHeader("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
-// 	next(ctx)
-// }
-
 // corsMiddleware is a middleware to add CORS headers.
 func (s *Server) corsMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -91,13 +85,6 @@ func (s *Server) corsMiddleware(next http.Handler) http.Handler {
 		next.ServeHTTP(w, r)
 	})
 }
-
-//
-// logRequests is a middleware to log HTTP requests.
-// func (s *Server) logRequests(ctx huma.Context, next func(huma.Context)) {
-// 	log.Printf("%s %s", ctx.Method(), ctx.URL().Path)
-// 	next(ctx)
-// }
 
 // // logRequests is a middleware to log HTTP requests.
 func (s *Server) logRequests(next http.Handler) http.Handler {

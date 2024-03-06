@@ -31,7 +31,7 @@ type StreamSessionRequest struct {
 }
 
 type Session struct {
-	UserId    string    `json:"user_id"`
+	UserId    uuid.UUID `json:"user_id"`
 	SessionId uuid.UUID `json:"session_id,omitempty"`
 }
 

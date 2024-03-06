@@ -54,7 +54,6 @@ func (o OpenAI) NewSession(ctx context.Context, db *db.DB, userId pgtype.UUID) (
 }
 
 func (o OpenAI) GetSession(ctx context.Context, db *db.DB, sessionId pgtype.UUID) (chan string, error) {
-	fmt.Println("SESSION ID: ", sessionId)
 	// Check if session exists
 	exists, err := db.CheckSessionExists(ctx, sessionId)
 	if err != nil {
@@ -72,7 +71,8 @@ func (o OpenAI) GetSession(ctx context.Context, db *db.DB, sessionId pgtype.UUID
 
 	// Create the channel if its not already in memory
 	if _, ok := o.Channels[sessionIdString]; !ok {
-		o.Channels[sessionIdString] = make(chan string)
+		// Create a buffered channel to keep message ordering
+		o.Channels[sessionIdString] = make(chan string, 1)
 	}
 
 	return o.Channels[sessionIdString], nil
@@ -84,15 +84,34 @@ func (o OpenAI) SendCompletion(ctx context.Context, db *db.DB, sessionId pgtype.
 		return err
 	}
 
+	// Get message history
+	messages, err := db.GetSessionMessages(ctx, sessionId)
+	if err != nil {
+		return err
+	}
+
+	// Begin Tx
+	tx, rollback, err := db.WithTX(ctx)
+	if err != nil {
+		return err
+	}
+	defer rollback()
+
+	// Add User Message
+	err = db.AddMessageTx(ctx, tx, sessionId, openai.ChatMessageRoleUser, message)
+	if err != nil {
+		return err
+	}
+
+	messages = append(messages, openai.ChatCompletionMessage{
+		Role:    openai.ChatMessageRoleUser,
+		Content: message,
+	})
+
 	chatReq := openai.ChatCompletionRequest{
-		Model: openai.GPT3Dot5Turbo,
-		Messages: []openai.ChatCompletionMessage{
-			{
-				Role:    openai.ChatMessageRoleUser,
-				Content: message,
-			},
-		},
-		Stream: true,
+		Model:    openai.GPT3Dot5Turbo,
+		Messages: messages,
+		Stream:   true,
 	}
 
 	chatStream, err := o.Client.CreateChatCompletionStream(ctx, chatReq)
@@ -101,6 +120,8 @@ func (o OpenAI) SendCompletion(ctx context.Context, db *db.DB, sessionId pgtype.
 	}
 	defer chatStream.Close()
 
+	var chatResponse string
+
 	for {
 		if sessionChan == nil {
 			fmt.Println("sessionChan is nil")
@@ -108,14 +129,27 @@ func (o OpenAI) SendCompletion(ctx context.Context, db *db.DB, sessionId pgtype.
 		}
 		response, err := chatStream.Recv()
 		if errors.Is(err, io.EOF) {
-			fmt.Println("Stream finished")
+
+			// Add AI Message to DB
+			err = db.AddMessageTx(ctx, tx, sessionId, openai.ChatMessageRoleAssistant, chatResponse)
+			if err != nil {
+				return err
+			}
+
+			if err = tx.Commit(ctx); err != nil {
+				return err
+			}
+
 			return nil
+
 		}
 
 		if err != nil {
 			fmt.Printf("Stream error: %v\n", err)
 			return err
 		}
+
+		chatResponse += response.Choices[0].Delta.Content
 		sessionChan <- response.Choices[0].Delta.Content
 	}
 }
