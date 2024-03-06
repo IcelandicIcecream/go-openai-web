@@ -1,0 +1,25 @@
+Describe for me the style of this property, the ambience for it, it's feeling, the type of decor and furniture for it and access it from a world
+class property agent. Create a 5 sentence description and generate 10 tags for it in the format of TAG:WEIGHT:CONFIDENCE_SCORE
+whereby weight gives the weightage to the tag based on how closely it relates to the image.
+finally provide the core stylesof the house
+Flooring
+Walls
+Lighting
+DecorStyle
+
+Provide the negatives of this house in tags as well of TAG:WEIGHT:CONFIDENCE_SCORE
+
+the confidence score gives your true accessment of how confident are you in your answer. Please format your response in JSON format. LIKE THIS:
+{
+  "negative_tags": ["negativeTag1", "negativeTag2"],
+  "positive_tags": ["positiveTag1", "positiveTag2"],
+  "description": "description of the tags",
+  "core_styles_of_the_house": [{
+    "style": "style1",
+    "description": "description of the style"
+    }, {
+    "style": "style2",
+    "description": "description of the style"
+    },
+  ]
+}
